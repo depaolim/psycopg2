@@ -992,6 +992,28 @@ psyco_conn_get_backend_pid(connectionObject *self)
     return PyInt_FromLong((long)PQbackendPID(self->pgconn));
 }
 
+/* get the current host */
+
+#define psyco_conn_get_host_doc \
+"get_host() -- Returns the server host name of the active connection.\n"    \
+"This can be a host name, an IP address, or a directory path if the\n"      \
+"connection is via Unix socket. (The path case can be distinguished\n"      \
+"because it will always be an absolute path, beginning with /.)"
+
+static PyObject *
+psyco_conn_get_host(connectionObject *self)
+{
+    const char *val = NULL;
+
+    EXC_IF_CONN_CLOSED(self);
+
+    val = PQhost(self->pgconn);
+    if (!val) {
+        Py_RETURN_NONE;
+    }
+    return conn_text_from_chars(self, val);
+}
+
 /* reset the currect connection */
 
 #define psyco_conn_reset_doc \
@@ -1165,6 +1187,8 @@ static struct PyMethodDef connectionObject_methods[] = {
      METH_NOARGS, psyco_conn_get_dsn_parameters_doc},
     {"get_backend_pid", (PyCFunction)psyco_conn_get_backend_pid,
      METH_NOARGS, psyco_conn_get_backend_pid_doc},
+    {"get_host", (PyCFunction)psyco_conn_get_host,
+     METH_NOARGS, psyco_conn_get_host_doc},
     {"lobject", (PyCFunction)psyco_conn_lobject,
      METH_VARARGS|METH_KEYWORDS, psyco_conn_lobject_doc},
     {"reset", (PyCFunction)psyco_conn_reset,
